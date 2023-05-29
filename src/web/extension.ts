@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -21,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const panel = vscode.window.createWebviewPanel(
 			"jscad",
-			"Title?",
+			"JSCAD",
 			vscode.ViewColumn.Beside,
 			{
         enableScripts: true,
@@ -29,13 +30,14 @@ export function activate(context: vscode.ExtensionContext) {
 				// localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
 			}
 		);
+		
+		const extensionURI = panel.webview.asWebviewUri(context.extensionUri);
 
 		panel.webview.html = `<!DOCTYPE html>
 		<html lang="en">
 		<head>
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>The Title</title>
 			<style>
 				.container {
 					width: 100%;
@@ -50,8 +52,10 @@ export function activate(context: vscode.ExtensionContext) {
 		</head>
 		<body>
 			<div class="container" id="app">Hello World!</div>
+			<canvas id='renderTarget' style="border: 0px; margin: 0px; padding: 0px; top: 0px; left: 0px; width: 100%; height: 100%; position: absolute;"> </canvas>
+			<script src="${extensionURI}/dist/web/webview.js"></script>
 		</body>
-		</html>`
+		</html>`;
 	});
 
 	context.subscriptions.push(disposable);
