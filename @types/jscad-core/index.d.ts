@@ -73,6 +73,19 @@ declare module "@jscad/core" {
     result: ParamsOrSolids | null
   ) => void;
 
+  export interface OpenJscadFile {
+    ext: string;
+    fullPath: string;
+    name: string;
+    source: string;
+  }
+
+  export interface OpenJscadDir {
+    fullPath: string;
+    name: string;
+    children: (OpenJscadFile | OpenJscadDir)[];
+  }
+
   export const evaluation: {
     rebuildGeometry: (
       options: {
@@ -86,12 +99,7 @@ declare module "@jscad/core" {
         lookupCounts?: any;
         /** @default {} */
         parameterValues?: { [key: string]: string | number | boolean };
-        filesAndFolders: {
-          name: string;
-          ext: string;
-          source: string;
-          fullPath: string;
-        }[];
+        filesAndFolders: (OpenJscadFile | OpenJscadDir)[];
       },
       callback: RebuildGeometryCallback
     ) => void;
