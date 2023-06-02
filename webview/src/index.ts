@@ -1,4 +1,3 @@
-import testscript from "./testscript";
 import viewer from "./viewer";
 
 const vscode = acquireVsCodeApi();
@@ -18,12 +17,3 @@ window.addEventListener("message", (event) => {
 vscode.postMessage({
   command: "ready",
 });
-
-// setFiles([
-//   {
-//     name: "file",
-//     ext: "js",
-//     source: testscript,
-//     fullPath: "/fake/foo.js",
-//   },
-// ]);
