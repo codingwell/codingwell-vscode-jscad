@@ -29,14 +29,13 @@ export class DataWatcher {
     const stat = await vscode.workspace.fs.stat(uri);
     let glob: vscode.GlobPattern;
     if ((stat.type & vscode.FileType.File) === vscode.FileType.File) {
-      const parsedPath = path.parse(uri.fsPath);
-      glob = new vscode.RelativePattern(parsedPath.dir, parsedPath.base);
+      glob = new vscode.RelativePattern(uri, "*");
       this._fileType = vscode.FileType.File;
     } else if (
       (stat.type & vscode.FileType.Directory) ===
       vscode.FileType.Directory
     ) {
-      glob = new vscode.RelativePattern(uri.fsPath, `**/*.js`);
+      glob = new vscode.RelativePattern(uri, `**/*.js`);
       this._fileType = vscode.FileType.Directory;
     } else {
       vscode.window.showErrorMessage(`Unknown file type: ${uri.fsPath}`);
@@ -71,7 +70,9 @@ export class DataWatcher {
 
     if (this._fileType === vscode.FileType.File) {
       const source = await vscode.workspace.fs.readFile(uri);
-      const files = [{ name: "index.js", source: source.toString() }];
+      const files = [
+        { name: "index.js", source: new TextDecoder().decode(source) },
+      ];
       return createStructuredSource(files);
     }
 
@@ -85,17 +86,14 @@ export class DataWatcher {
           const [name, type] = fileOrDirectorie;
           if (type === vscode.FileType.Directory) {
             nextDirectories.push(vscode.Uri.joinPath(dir, name));
-          } else if (
-            type === vscode.FileType.File &&
-            (name.endsWith(".js") || name.endsWith(".jscad"))
-          ) {
+          } else if (type === vscode.FileType.File && name.endsWith(".js")) {
             const fullPath = path.join(dir.fsPath, name);
             const source = await vscode.workspace.fs.readFile(
               vscode.Uri.joinPath(dir, name)
             );
             files.push({
               name: path.relative(uri.fsPath, fullPath),
-              source: source.toString(),
+              source: new TextDecoder().decode(source),
             });
           }
         }

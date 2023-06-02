@@ -1,8 +1,10 @@
 {
   "name": "jscad",
   "displayName": "jscad",
-  "description": "Preview JSCad Drawings",
-  "version": "0.0.1",
+  "repository": "https://github.com/codingwell/codingwell-vscode-jscad",
+  "license": "MIT",
+  "description": "Preview JSCAD Drawings",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -14,10 +16,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "jscad.helloWorld",
-        "title": "Hello World"
+        "command": "jscad.preview",
+        "title": "Preview JSCAD Model"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceLangId == javascript",
+          "command": "jscad.preview",
+          "group": "JSCAD"
+        },
+        {
+          "when": "explorerResourceIsFolder",
+          "command": "jscad.preview",
+          "group": "JSCAD"
+        }
+      ]
+    }
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",

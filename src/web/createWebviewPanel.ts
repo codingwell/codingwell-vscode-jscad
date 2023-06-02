@@ -1,8 +1,13 @@
 import * as vscode from "vscode";
 import { DataWatcher } from "./data-watcher";
 
-export default function createWebviewPanel(context: vscode.ExtensionContext) {
+export default function createWebviewPanel(
+  context: vscode.ExtensionContext,
+  uri: vscode.Uri
+) {
   const dataWatcher = new DataWatcher();
+  const disposables: vscode.Disposable[] = [dataWatcher];
+
   const panel = vscode.window.createWebviewPanel(
     "jscad",
     "JSCAD",
@@ -10,11 +15,31 @@ export default function createWebviewPanel(context: vscode.ExtensionContext) {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      // localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
     }
+  );
+  panel.onDidDispose(
+    () => {
+      disposables.forEach((d) => d.dispose());
+    },
+    null,
+    disposables
   );
 
   const extensionURI = panel.webview.asWebviewUri(context.extensionUri);
+
+  panel.webview.onDidReceiveMessage(
+    (message) => {
+      switch (message.command) {
+        case "ready":
+          dataWatcher.watch(uri, (data) => {
+            panel.webview.postMessage({ command: "setData", data });
+          });
+          return;
+      }
+    },
+    null,
+    disposables
+  );
 
   panel.webview.html = `<!DOCTYPE html>
     <html lang="en">
