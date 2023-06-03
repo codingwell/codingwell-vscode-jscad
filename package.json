@@ -1,9 +1,10 @@
 {
-  "name": "jscad",
-  "displayName": "jscad",
+  "name": "codingwell-vscode-jscad",
+  "displayName": "JSCAD Preview by CodingWell",
   "repository": "https://github.com/codingwell/codingwell-vscode-jscad",
   "license": "MIT",
   "description": "Preview JSCAD Drawings",
+  "icon": "logo.png",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.78.0"
@@ -16,7 +17,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "jscad.preview",
+        "command": "codingwell-vscode-jscad.preview",
         "title": "Preview JSCAD Model"
       }
     ],
@@ -24,12 +25,12 @@
       "explorer/context": [
         {
           "when": "resourceLangId == javascript",
-          "command": "jscad.preview",
+          "command": "codingwell-vscode-jscad.preview",
           "group": "JSCAD"
         },
         {
           "when": "explorerResourceIsFolder",
-          "command": "jscad.preview",
+          "command": "codingwell-vscode-jscad.preview",
           "group": "JSCAD"
         }
       ]
