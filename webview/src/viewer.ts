@@ -11,7 +11,7 @@ import {
   RebuildGeometryCallback,
   evaluation,
 } from "@jscad/core";
-import { Geometry, Geom3 } from "@jscad/modeling/src/geometries/types";
+import { Geometry, Geom2, Geom3 } from "@jscad/modeling/src/geometries/types";
 
 type Entity = {
   geometry: Geometry;
@@ -25,9 +25,11 @@ type Entity = {
 
 import { pointerGestures } from "most-gestures";
 import cleanupErrorStack from "./cleanupErrorStack";
+import downloadModel from "./downloadModel";
 
 const loadingoverlay = document.getElementById("loadingoverlay")!;
 const erroroverlay = document.getElementById("erroroverlay")!;
+const downloadbutton = document.getElementById("download")!;
 
 export default function viewer() {
   const rotateSpeed = 0.002;
@@ -143,6 +145,11 @@ export default function viewer() {
   const render = prepareRender(viewerOptions);
 
   let entities: Entity[] = [];
+  let solids: (Geom2 | Geom3)[] = [];
+
+  downloadbutton.onclick = () => {
+    downloadModel(solids);
+  };
 
   let pendingRender = false;
   let pendingDoResize = false;
@@ -230,6 +237,7 @@ export default function viewer() {
     } else if (result && result.type === "solids") {
       canvas.style.removeProperty("opacity");
       erroroverlay.innerHTML = "";
+      solids = result.solids;
       // The return type of entitiesFromSolids is wrong :-/
       entities = entitiesFromSolids(
         {},

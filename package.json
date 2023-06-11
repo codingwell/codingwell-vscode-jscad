@@ -6,7 +6,7 @@
   "license": "MIT",
   "description": "Preview JSCAD Drawings",
   "icon": "logo.png",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engines": {
     "vscode": "^1.78.0"
   },

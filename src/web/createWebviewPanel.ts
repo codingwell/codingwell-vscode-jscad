@@ -73,6 +73,24 @@ export default function createWebviewPanel(
               justify-content: center;
             }
 
+            #download {
+              position: absolute;
+              top: 10px;
+              right: 10px;
+            }
+
+            #download svg {
+              fill: none;
+            }
+
+            #download svg polyline,
+            #download svg path {
+              stroke: #0077FF;
+              stroke-width: 2;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+            }
+
             .spinner {
               background: transparent;
               height: 64px;
@@ -97,6 +115,13 @@ export default function createWebviewPanel(
         <canvas id='renderTarget' style="border: 0px; margin: 0px; padding: 0px; top: 0px; left: 0px; width: 100%; height: 100%; position: absolute;"> </canvas>
         <div class="container" id="loadingoverlay"><div class="spinner"></div></div>
         <div class="container" id="erroroverlay"></div>
+        <button id="download">
+          <svg width="16px" height="16px" viewBox="0 0 16 16">
+            <polyline points="4.5 8.5 8 11 11.5 8.5"></polyline>
+            <path d="M8,1 L8,11"></path>
+            <path d="M1,15 L15,15"></path>
+          </svg>
+        </button>
         <script src="${extensionURI}/dist/web/webview.js"></script>
     </body>
     </html>`;
