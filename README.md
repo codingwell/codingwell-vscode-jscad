@@ -6,7 +6,7 @@ View rendered JSCAD V2 scripts while editing.
 
 ## Features
 
-1. Preview a single .js file (View explorer context menu or command on active editor)
+1. Preview a single .js file (Via explorer context menu or command on active editor)
 2. Preview a directory (should be a valid jscad project)
 3. Auto refresh on save
 4. VSCode for web support
@@ -19,9 +19,9 @@ Scripts must be in JSCAD Version 2 syntax
 
 1. View state is not preserved
 2. Cannot preview unsaved files
-3. No error messages for invalid scripts
-4. No parameter support
-5. Hangs the view while processing the script
+3. No parameter support
+4. Hangs the view while processing the script
+5. Auto refresh does not work on web
 
 ## Thanks
 

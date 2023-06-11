@@ -2,6 +2,18 @@ import * as path from "path";
 import * as vscode from "vscode";
 import type { OpenJscadDir } from "@jscad/core";
 
+function sourcemapify(input: { name: string; source: string }): {
+  name: string;
+  source: string;
+} {
+  let source = input.source;
+  const index = source.lastIndexOf("\n");
+  if (!source.substring(index).startsWith("\n//#")) {
+    source = source + "\n//# sourceURL=" + input.name;
+  }
+  return { name: input.name, source };
+}
+
 export class DataWatcher {
   private _disposables: vscode.Disposable[] = [];
   private _watcher: vscode.FileSystemWatcher | undefined;
@@ -44,7 +56,7 @@ export class DataWatcher {
     }
     this._uri = uri;
     const watcher = vscode.workspace.createFileSystemWatcher(glob!);
-    const emitData = async () => {
+    const emitData = async (changedUri?: vscode.Uri) => {
       const data = await this.scanFilesAndCreateData();
       if (data) {
         cb(data);
@@ -71,32 +83,49 @@ export class DataWatcher {
     if (this._fileType === vscode.FileType.File) {
       const source = await vscode.workspace.fs.readFile(uri);
       const files = [
-        { name: "index.js", source: new TextDecoder().decode(source) },
+        sourcemapify({
+          name: "index.js",
+          source: new TextDecoder().decode(source),
+        }),
       ];
       return createStructuredSource(files);
     }
 
-    const files = [];
+    const files: {
+      name: string;
+      source: string;
+    }[] = [];
     let directories = [uri];
     while (directories.length > 0) {
-      const nextDirectories = [];
+      const nextDirectories: vscode.Uri[] = [];
       for (let dir of directories) {
         const fileAndDirectories = await vscode.workspace.fs.readDirectory(dir);
-        for (let fileOrDirectorie of fileAndDirectories) {
-          const [name, type] = fileOrDirectorie;
-          if (type === vscode.FileType.Directory) {
-            nextDirectories.push(vscode.Uri.joinPath(dir, name));
-          } else if (type === vscode.FileType.File && name.endsWith(".js")) {
-            const fullPath = path.join(dir.fsPath, name);
-            const source = await vscode.workspace.fs.readFile(
-              vscode.Uri.joinPath(dir, name)
-            );
-            files.push({
-              name: path.relative(uri.fsPath, fullPath),
-              source: new TextDecoder().decode(source),
-            });
+
+        const asyncProcessedFilesAndDirs = fileAndDirectories.map(
+          async (fileOrDirectorie) => {
+            const [name, type] = fileOrDirectorie;
+            if (type === vscode.FileType.Directory) {
+              if (name === "@jscad") {
+                // The jscad library gets shimmed, so don't include it (it's also big)
+                return;
+              }
+              nextDirectories.push(vscode.Uri.joinPath(dir, name));
+            } else if (type === vscode.FileType.File && name.endsWith(".js")) {
+              const fullPath = path.join(dir.fsPath, name);
+              const source = await vscode.workspace.fs.readFile(
+                vscode.Uri.joinPath(dir, name)
+              );
+              files.push(
+                sourcemapify({
+                  name: path.relative(uri.fsPath, fullPath),
+                  source: new TextDecoder().decode(source),
+                })
+              );
+            }
           }
-        }
+        );
+
+        await Promise.all(asyncProcessedFilesAndDirs);
       }
       directories = nextDirectories;
     }

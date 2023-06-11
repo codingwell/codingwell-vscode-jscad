@@ -1,11 +1,12 @@
 {
   "name": "codingwell-vscode-jscad",
-  "displayName": "JSCAD Preview by CodingWell",
+  "publisher": "codingwell-net",
+  "displayName": "JSCAD Preview",
   "repository": "https://github.com/codingwell/codingwell-vscode-jscad",
   "license": "MIT",
   "description": "Preview JSCAD Drawings",
   "icon": "logo.png",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.78.0"
   },

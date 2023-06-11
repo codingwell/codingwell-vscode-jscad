@@ -11,7 +11,7 @@ import {
   RebuildGeometryCallback,
   evaluation,
 } from "@jscad/core";
-import { Geometry } from "@jscad/modeling/src/geometries/types";
+import { Geometry, Geom3 } from "@jscad/modeling/src/geometries/types";
 
 type Entity = {
   geometry: Geometry;
@@ -24,6 +24,10 @@ type Entity = {
 };
 
 import { pointerGestures } from "most-gestures";
+import cleanupErrorStack from "./cleanupErrorStack";
+
+const loadingoverlay = document.getElementById("loadingoverlay")!;
+const erroroverlay = document.getElementById("erroroverlay")!;
 
 export default function viewer() {
   const rotateSpeed = 0.002;
@@ -215,30 +219,49 @@ export default function viewer() {
     cameras.perspective.setProjection(camera, camera, { width, height });
   }
 
+  const handleParsed: RebuildGeometryCallback = (error, result) => {
+    loadingoverlay.style.display = "none";
+    if (error) {
+      const newtext = document.createTextNode(cleanupErrorStack(error.stack));
+
+      erroroverlay.innerHTML = "";
+      erroroverlay.appendChild(newtext);
+      canvas.style.opacity = "0.5";
+    } else if (result && result.type === "solids") {
+      canvas.style.removeProperty("opacity");
+      erroroverlay.innerHTML = "";
+      // The return type of entitiesFromSolids is wrong :-/
+      entities = entitiesFromSolids(
+        {},
+        ...result.solids
+      ) as unknown as Entity[];
+      requestRender();
+    }
+  };
+
+  let timeoutId: NodeJS.Timeout | undefined = undefined;
+
   // Setter for script
   return (filesAndFolders: (OpenJscadFile | OpenJscadDir)[]) => {
-    const handleParsed: RebuildGeometryCallback = (error, result) => {
-      if (result && result.type === "solids") {
-        // The return type of entitiesFromSolids is wrong :-/
-        entities = entitiesFromSolids(
-          {},
-          ...result.solids
-        ) as unknown as Entity[];
-        requestRender();
-      }
-    };
+    //Got new data
+    loadingoverlay.style.removeProperty("display");
 
-    evaluation.rebuildGeometry(
-      {
-        // mainPath: '',
-        // apiMainPath: '@jscad/modeling',s
-        // serialize: false,
-        // lookup: null,
-        // lookupCounts: null,
-        // parameterValues: {}
-        filesAndFolders,
-      },
-      handleParsed
-    );
+    clearTimeout(timeoutId);
+
+    // Debounce filechange events. Also allow loading indicator to render
+    timeoutId = setTimeout(() => {
+      evaluation.rebuildGeometry(
+        {
+          // mainPath: '',
+          // apiMainPath: '@jscad/modeling',s
+          // serialize: false,
+          // lookup: null,
+          // lookupCounts: null,
+          // parameterValues: {}
+          filesAndFolders,
+        },
+        handleParsed
+      );
+    }, 100);
   };
 }
