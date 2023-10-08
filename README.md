@@ -20,8 +20,7 @@ Scripts must be in JSCAD Version 2 syntax
 1. View state is not preserved
 2. Cannot preview unsaved files
 3. No parameter support
-4. Hangs the view while processing the script
-5. Auto refresh does not work on web
+4. Auto refresh does not work on web
 
 ## Thanks
 

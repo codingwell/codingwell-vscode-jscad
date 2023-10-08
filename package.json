@@ -6,7 +6,7 @@
   "license": "MIT",
   "description": "Preview JSCAD Drawings",
   "icon": "logo.png",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -45,7 +45,7 @@
     "watch-web": "webpack --watch",
     "package-web": "webpack --mode production --devtool hidden-source-map",
     "lint": "eslint src --ext ts",
-    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
+    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=."
   },
   "devDependencies": {
     "@jscad/core": "^2.6.6",

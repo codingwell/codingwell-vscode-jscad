@@ -9,7 +9,6 @@ import {
   OpenJscadDir,
   OpenJscadFile,
   RebuildGeometryCallback,
-  evaluation,
 } from "@jscad/core";
 import { Geometry, Geom2, Geom3 } from "@jscad/modeling/src/geometries/types";
 
@@ -26,6 +25,7 @@ type Entity = {
 import { pointerGestures } from "most-gestures";
 import cleanupErrorStack from "./cleanupErrorStack";
 import downloadModel from "./downloadModel";
+import webworkerFactory from "./webworkerFactory";
 
 const loadingoverlay = document.getElementById("loadingoverlay")!;
 const erroroverlay = document.getElementById("erroroverlay")!;
@@ -227,14 +227,15 @@ export default function viewer() {
   }
 
   const handleParsed: RebuildGeometryCallback = (error, result) => {
-    loadingoverlay.style.display = "none";
     if (error) {
+      loadingoverlay.style.display = "none";
       const newtext = document.createTextNode(cleanupErrorStack(error.stack));
 
       erroroverlay.innerHTML = "";
       erroroverlay.appendChild(newtext);
       canvas.style.opacity = "0.5";
     } else if (result && result.type === "solids") {
+      loadingoverlay.style.display = "none";
       canvas.style.removeProperty("opacity");
       erroroverlay.innerHTML = "";
       solids = result.solids;
@@ -244,32 +245,55 @@ export default function viewer() {
         ...result.solids
       ) as unknown as Entity[];
       requestRender();
+    } else if (result && result.type === "params") {
+      // Future use
     }
   };
+
+  let worker: Worker | null = null;
+  let creatingWorker = false;
+  let latestFilesAndFolders: (OpenJscadFile | OpenJscadDir)[] = [];
 
   let timeoutId: NodeJS.Timeout | undefined = undefined;
 
   // Setter for script
-  return (filesAndFolders: (OpenJscadFile | OpenJscadDir)[]) => {
+  return async (filesAndFolders: (OpenJscadFile | OpenJscadDir)[]) => {
     //Got new data
     loadingoverlay.style.removeProperty("display");
 
-    clearTimeout(timeoutId);
+    latestFilesAndFolders = filesAndFolders;
 
-    // Debounce filechange events. Also allow loading indicator to render
-    timeoutId = setTimeout(() => {
-      evaluation.rebuildGeometry(
-        {
-          // mainPath: '',
-          // apiMainPath: '@jscad/modeling',s
-          // serialize: false,
-          // lookup: null,
-          // lookupCounts: null,
-          // parameterValues: {}
-          filesAndFolders,
-        },
-        handleParsed
-      );
-    }, 100);
+    if (creatingWorker) {
+      // Another invocation is already starting a worker.
+      return;
+    }
+
+    // Poor mans lock
+    creatingWorker = true;
+
+    if (worker != null) {
+      console.log("Killing Worker");
+      worker.terminate();
+      worker = null;
+    }
+
+    const myworker = (worker = await webworkerFactory());
+    const theseFilesAndFolders = latestFilesAndFolders;
+    creatingWorker = false;
+
+    myworker.addEventListener("message", (event) => {
+      const message = event.data; // The json data that the worker sent
+      switch (message.command) {
+        case "geometry":
+          const error = message.error;
+          const result = message.result;
+          handleParsed(error, result);
+          break;
+      }
+    });
+    myworker.postMessage({
+      command: "files",
+      filesAndFolders: theseFilesAndFolders,
+    });
   };
 }

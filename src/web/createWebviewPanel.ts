@@ -46,6 +46,10 @@ export default function createWebviewPanel(
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta
+          http-equiv="Content-Security-Policy"
+          content="default-src 'none'; img-src ${panel.webview.cspSource} https:; script-src 'unsafe-eval' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource}; connect-src ${panel.webview.cspSource}; worker-src blob:;" 
+        />
         <style>
             body {
               background: white;
@@ -122,7 +126,7 @@ export default function createWebviewPanel(
             <path d="M1,15 L15,15"></path>
           </svg>
         </button>
-        <script src="${extensionURI}/dist/web/webview.js"></script>
+        <script id="script" src="${extensionURI}/dist/web/webview.js" data-worker-uri="${extensionURI}/dist/web/webworker.js"></script>
     </body>
     </html>`;
 }

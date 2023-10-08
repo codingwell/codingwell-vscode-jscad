@@ -1,4 +1,4 @@
-import viewer from "./viewer";
+import viewer from "./viewer/viewer";
 
 const vscode = acquireVsCodeApi();
 

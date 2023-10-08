@@ -80,6 +80,7 @@ const webViewConfig = {
   target: "web", // extensions run in a webworker context
   entry: {
     webview: "./webview/src/index.ts",
+    webworker: "./webview/src/worker/webworker.ts",
   },
   output: {
     filename: "[name].js",
@@ -118,7 +119,7 @@ const webViewConfig = {
   performance: {
     hints: false,
   },
-  devtool: "nosources-source-map", // create a source map that points to the original source file
+  devtool: "inline-source-map", // create a source map that points to the original source file
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },
