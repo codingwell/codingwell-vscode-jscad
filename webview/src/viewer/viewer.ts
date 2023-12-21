@@ -258,6 +258,7 @@ export default function viewer() {
 
   // Setter for script
   return async (filesAndFolders: (OpenJscadFile | OpenJscadDir)[]) => {
+    console.debug(filesAndFolders);
     //Got new data
     loadingoverlay.style.removeProperty("display");
 

@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import * as sourceUtils from "./sourceUtils";
 import type { OpenJscadDir } from "@jscad/core";
 
 function sourcemapify(input: { name: string; source: string }): {
@@ -82,13 +83,37 @@ export class DataWatcher {
 
     if (this._fileType === vscode.FileType.File) {
       const source = await vscode.workspace.fs.readFile(uri);
+
+      const decoder = new TextDecoder();
+      const sourceContent = decoder.decode(source);
+
       const files = [
         sourcemapify({
           name: "index.js",
-          source: new TextDecoder().decode(source),
+          source: sourceContent,
         }),
       ];
-      return createStructuredSource(files);
+
+      const rootPath = path.dirname(uri.path);
+
+      const addRequires = async (filePath: string, sourceCode: string) => {
+        const basePath = path.dirname(filePath)
+        let requires = sourceUtils.getRequires(basePath, sourceCode);
+
+        for (let r of requires) {
+          const bin = await vscode.workspace.fs.readFile(r);
+          const cnt = decoder.decode(bin);
+          files.push({
+            name: r.path.substring(rootPath.length + 1),
+            source: cnt
+          });
+          await addRequires(r.path, cnt);
+        }
+      }
+
+      await addRequires(uri.path, sourceContent);
+
+      return createStructuredSource(rootPath, files);
     }
 
     const files: {
@@ -130,7 +155,7 @@ export class DataWatcher {
       directories = nextDirectories;
     }
 
-    return createStructuredSource(files);
+    return createStructuredSource(path.dirname(uri.path), files);
   }
 
   public dispose() {
@@ -149,33 +174,37 @@ export class DataWatcher {
   }
 }
 
-function createStructuredSource(
-  files: { name: string; source: string }[]
-): OpenJscadDir[] {
+function createStructuredSource(basePath: string, files: { name: string; source: string }[]): OpenJscadDir[] {
   if (!files) {
     return [];
   }
 
   const structure = [
     {
-      fullPath: "/root",
-      name: "root",
+      fullPath: basePath,
+      name: path.basename(basePath),
       children: [],
     },
   ];
 
   files.forEach((f) => {
     const { name, source } = f;
-    const slices = ["/root", ...name.split(path.sep)];
+
+    const slices = [basePath, ...name.split(path.sep)];
+
     let mountPoint = structure;
     let fullPath = "";
+
     slices.forEach((s) => {
       fullPath = [fullPath, s].filter((p) => !!p).join("/");
+
       let nextMountPoint: any = mountPoint.find((p) => p.fullPath === fullPath);
+
       if (!nextMountPoint) {
         nextMountPoint = { fullPath, name: s };
         mountPoint.push(nextMountPoint);
       }
+
       if (/\.js$/.test(s)) {
         Object.assign(nextMountPoint, { ext: "js", source });
         // the loop should end here;
