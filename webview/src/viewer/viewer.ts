@@ -5,11 +5,13 @@ import {
   controls,
   entitiesFromSolids,
 } from "@jscad/regl-renderer";
+
 import {
   OpenJscadDir,
   OpenJscadFile,
   RebuildGeometryCallback,
 } from "@jscad/core";
+
 import { Geometry, Geom2, Geom3 } from "@jscad/modeling/src/geometries/types";
 
 type Entity = {
@@ -38,6 +40,7 @@ export default function viewer() {
 
   const width = window.innerWidth;
   const height = window.innerHeight;
+
   // prepare the camera
   const camera = Object.assign({}, cameras.perspective.defaults);
   cameras.perspective.setProjection(camera, camera, { width, height });
@@ -254,11 +257,10 @@ export default function viewer() {
   let creatingWorker = false;
   let latestFilesAndFolders: (OpenJscadFile | OpenJscadDir)[] = [];
 
-  let timeoutId: NodeJS.Timeout | undefined = undefined;
+  // let timeoutId: NodeJS.Timeout | undefined = undefined;
 
   // Setter for script
   return async (filesAndFolders: (OpenJscadFile | OpenJscadDir)[]) => {
-    console.debug(filesAndFolders);
     //Got new data
     loadingoverlay.style.removeProperty("display");
 

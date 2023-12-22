@@ -1,12 +1,10 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sourceUtils from "./sourceUtils";
-import type { OpenJscadDir } from "@jscad/core";
+import type { FileContent } from "./sourceUtils";
+import type { OpenJscadDir, OpenJscadFile } from "@jscad/core";
 
-function sourcemapify(input: { name: string; source: string }): {
-  name: string;
-  source: string;
-} {
+function sourcemapify(input: FileContent): FileContent {
   let source = input.source;
   const index = source.lastIndexOf("\n");
   if (!source.substring(index).startsWith("\n//#")) {
@@ -79,6 +77,7 @@ export class DataWatcher {
     if (!this._uri) {
       return;
     }
+
     const uri = this._uri;
 
     if (this._fileType === vscode.FileType.File) {
@@ -87,14 +86,14 @@ export class DataWatcher {
       const decoder = new TextDecoder();
       const sourceContent = decoder.decode(source);
 
+      const rootPath = path.dirname(uri.path);
+
       const files = [
         sourcemapify({
-          name: "index.js",
+          name: path.join(rootPath, path.basename(uri.path)),
           source: sourceContent,
         }),
       ];
-
-      const rootPath = path.dirname(uri.path);
 
       const addRequires = async (filePath: string, sourceCode: string) => {
         const basePath = path.dirname(filePath)
@@ -104,22 +103,30 @@ export class DataWatcher {
           const bin = await vscode.workspace.fs.readFile(r);
           const cnt = decoder.decode(bin);
           files.push({
-            name: r.path.substring(rootPath.length + 1),
+            name: r.path,
             source: cnt
           });
           await addRequires(r.path, cnt);
         }
       }
 
-      await addRequires(uri.path, sourceContent);
+      try {
+        await addRequires(uri.path, sourceContent);
+      }
+      catch (e) {
+        console.error(e);
+      }
 
-      return createStructuredSource(rootPath, files);
+      return createStructuredSource(uri.path, files);
     }
+
+    // *** dirictory, seems not works
 
     const files: {
       name: string;
       source: string;
     }[] = [];
+
     let directories = [uri];
     while (directories.length > 0) {
       const nextDirectories: vscode.Uri[] = [];
@@ -155,7 +162,7 @@ export class DataWatcher {
       directories = nextDirectories;
     }
 
-    return createStructuredSource(path.dirname(uri.path), files);
+    return createStructuredSource('', files);
   }
 
   public dispose() {
@@ -174,48 +181,67 @@ export class DataWatcher {
   }
 }
 
-function createStructuredSource(basePath: string, files: { name: string; source: string }[]): OpenJscadDir[] {
+function createStructuredSource(fsPath: string, files: FileContent[]): OpenJscadDir[] {
   if (!files) {
     return [];
   }
 
-  const structure = [
-    {
-      fullPath: basePath,
-      name: path.basename(basePath),
-      children: [],
-    },
-  ];
+  // we have always format /<workspace folder>/... so 0 element is empty
+  const rootName = files[0].name.split('/')[1]
 
-  files.forEach((f) => {
-    const { name, source } = f;
+  const root: OpenJscadDir = {
+    children: [],
+    fullPath: '/' + rootName,
+    name: rootName
+  }
 
-    const slices = [basePath, ...name.split(path.sep)];
-
-    let mountPoint = structure;
-    let fullPath = "";
-
-    slices.forEach((s) => {
-      fullPath = [fullPath, s].filter((p) => !!p).join("/");
-
-      let nextMountPoint: any = mountPoint.find((p) => p.fullPath === fullPath);
-
-      if (!nextMountPoint) {
-        nextMountPoint = { fullPath, name: s };
-        mountPoint.push(nextMountPoint);
-      }
-
-      if (/\.js$/.test(s)) {
-        Object.assign(nextMountPoint, { ext: "js", source });
-        // the loop should end here;
-      } else {
-        if (!nextMountPoint.children) {
-          nextMountPoint.children = [];
-        }
-        mountPoint = nextMountPoint.children;
-      }
+  if (fsPath != `/${rootName}/index.js`) {
+    root.children.push({
+      ext: '.js',
+      fullPath: '/' + rootName + "/index.js",
+      source: `module.exports = require('${fsPath}')`,
+      name: 'index.js'
     });
-  });
+  }
 
-  return structure;
+  const putFile = (file: FileContent) => {
+    const parts = file.name.split('/');
+    let current: OpenJscadDir = root;
+
+    // serches child in current
+    const findChild = (s: string): OpenJscadDir | undefined => {
+      const res = current.children.filter(v => v.name == s);
+      return res[0] as OpenJscadDir;
+    }
+
+    for (let i = 2; i < parts.length - 1; i++) {
+      let child = findChild(parts[i]);
+
+      if (child) {
+        current = child;
+        continue;
+      }
+
+      const folder = {
+        name: parts[i],
+        children: [],
+        fullPath: '/' + parts.slice(1, i + 1).join('/')
+      }
+
+      current.children.push(folder);
+
+      current = folder
+    }
+
+    current.children.push({
+      ext: path.extname(file.name),
+      fullPath: file.name,
+      source: file.source,
+      name: path.basename(file.name)
+    });
+  }
+
+  files.forEach(putFile);
+
+  return [root];
 }
