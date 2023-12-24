@@ -25,7 +25,5 @@ export const getRequires = (root: string, source: string): vscode.Uri[] => {
     }
   }
 
-  console.log("requires", result);
-
   return result;
 }

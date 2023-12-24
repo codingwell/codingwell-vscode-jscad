@@ -1,0 +1,80 @@
+﻿body {
+    background: white;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    pointer-events: none;
+}
+
+#erroroverlay {
+    color: red;
+    white-space: pre;
+}
+
+#loadingoverlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#download {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#download svg {
+    fill: none;
+}
+
+#download svg polyline,
+#download svg path {
+    stroke: #0077ff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.spinner {
+    background: transparent;
+    height: 64px;
+    width: 64px;
+    border: 5px solid #fff7;
+    border-radius: 50%;
+    border-top: 5px solid black;
+    animation: rotate 0.6s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#renderTarget {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+#react-app {
+    position: absolute;
+    z-index: 1;
+    right: 16px;
+    top: 16px;
+}
