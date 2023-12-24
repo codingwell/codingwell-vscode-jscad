@@ -31,8 +31,6 @@ import webworkerFactory from "./webworkerFactory";
 const loadingoverlay = document.getElementById("loadingoverlay")!;
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const erroroverlay = document.getElementById("erroroverlay")!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const downloadbutton = document.getElementById("download")!;
 
 export default function viewer() {
   const rotateSpeed = 0.002;
@@ -150,9 +148,20 @@ export default function viewer() {
   let entities: Entity[] = [];
   let solids: (Geom2 | Geom3)[] = [];
 
-  downloadbutton.onclick = () => {
-    downloadModel(solids);
-  };
+  window.addEventListener(
+    "message",
+    (event: MessageEvent) => {
+      if (
+        event &&
+        event.data &&
+        event.data.type &&
+        event.data.type == "download"
+      ) {
+        downloadModel(solids, event.data.fileName, event.data.format);
+      }
+    },
+    false,
+  );
 
   let pendingRender = false;
   let pendingDoResize = false;

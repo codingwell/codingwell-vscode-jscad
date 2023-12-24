@@ -117,7 +117,7 @@ const webViewConfig = {
   },
   resolve: {
     mainFields: ["browser", "module", "main"], // look for `browser` entry point in imported node modules
-    extensions: [".ts", ".js"], // support ts-files and js-files
+    extensions: [".ts", ".js", ".jsx", ".css"],
     alias: {
       // provides alternate implementation for node module and source files
     },
@@ -131,11 +131,16 @@ const webViewConfig = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: "ts-loader",
-          },
-        ],
+        use: [{ loader: "ts-loader" }],
+      },
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: { loader: "babel-loader" },
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
       },
     ],
   },
