@@ -17,3 +17,7 @@ window.addEventListener("message", (event) => {
 vscode.postMessage({
   command: "ready",
 });
+
+window.mySetState = function (msg: unknown) {
+  vscode.setState(msg);
+};

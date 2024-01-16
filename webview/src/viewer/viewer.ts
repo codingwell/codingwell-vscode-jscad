@@ -27,8 +27,11 @@ import cleanupErrorStack from "./cleanupErrorStack";
 import downloadModel from "./downloadModel";
 import webworkerFactory from "./webworkerFactory";
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const loadingoverlay = document.getElementById("loadingoverlay")!;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const erroroverlay = document.getElementById("erroroverlay")!;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const downloadbutton = document.getElementById("download")!;
 
 export default function viewer() {
@@ -65,7 +68,7 @@ export default function viewer() {
     }
   }
 
-  let grid = {
+  const grid = {
     // grid data
     // the choice of what draw command to use is also data based
     visuals: {
@@ -97,7 +100,7 @@ export default function viewer() {
     if (!shiftKey) {
       const updated = controls.orbit.rotate(
         { controls: controlsState, camera, speed: rotateSpeed },
-        delta
+        delta,
       );
       controlsState = { ...controlsState, ...updated.controls };
     }
@@ -110,7 +113,7 @@ export default function viewer() {
     if (shiftKey) {
       const updated = controls.orbit.pan(
         { controls: controlsState, camera, speed: panSpeed },
-        delta
+        delta,
       );
       // const fooCam = camera = { ...camera, ...updated.camera }
       camera.position = updated.camera.position;
@@ -123,7 +126,7 @@ export default function viewer() {
   gestures.zooms.forEach((x) => {
     const updated = controls.orbit.zoom(
       { controls: controlsState, camera, speed: zoomSpeed },
-      -x
+      -x,
     );
     controlsState = { ...controlsState, ...updated.controls };
     renderCameraChange();
@@ -166,7 +169,9 @@ export default function viewer() {
         const renderOptions = {
           ...viewerOptions,
           entities: [
+            // eslint-disable-next-line no-constant-condition
             true ? grid : undefined,
+            // eslint-disable-next-line no-constant-condition
             true ? axes : undefined,
             ...entities,
           ].filter((x) => x != null),
@@ -178,7 +183,7 @@ export default function viewer() {
   }
 
   function renderCameraChange() {
-    let updatedA = controls.orbit.update({ controls: controlsState, camera });
+    const updatedA = controls.orbit.update({ controls: controlsState, camera });
     controlsState = { ...controlsState, ...updatedA.controls };
     camera.position = updatedA.camera.position;
     cameras.perspective.update(camera);
@@ -242,7 +247,7 @@ export default function viewer() {
       // The return type of entitiesFromSolids is wrong :-/
       entities = entitiesFromSolids(
         {},
-        ...result.solids
+        ...result.solids,
       ) as unknown as Entity[];
       requestRender();
     } else if (result && result.type === "params") {
@@ -253,8 +258,6 @@ export default function viewer() {
   let worker: Worker | null = null;
   let creatingWorker = false;
   let latestFilesAndFolders: (OpenJscadFile | OpenJscadDir)[] = [];
-
-  let timeoutId: NodeJS.Timeout | undefined = undefined;
 
   // Setter for script
   return async (filesAndFolders: (OpenJscadFile | OpenJscadDir)[]) => {
@@ -285,9 +288,11 @@ export default function viewer() {
       const message = event.data; // The json data that the worker sent
       switch (message.command) {
         case "geometry":
-          const error = message.error;
-          const result = message.result;
-          handleParsed(error, result);
+          {
+            const error = message.error;
+            const result = message.result;
+            handleParsed(error, result);
+          }
           break;
       }
     });

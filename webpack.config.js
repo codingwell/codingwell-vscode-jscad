@@ -31,6 +31,14 @@ const webExtensionConfig = {
     extensions: [".ts", ".js"], // support ts-files and js-files
     alias: {
       // provides alternate implementation for node module and source files
+
+      "worker-farm": false,
+      "jest-worker": false,
+      "uglify-js": false,
+      "@swc/core": false,
+      esbuild: false,
+      "graceful-fs": false,
+      inspector: false,
     },
     fallback: {
       // Webpack 5 no longer polyfills Node.js core modules automatically.
@@ -38,7 +46,26 @@ const webExtensionConfig = {
       // for the list of Node.js core module polyfills.
       assert: require.resolve("assert"),
       // Polyfill Node.js for the jscad fakeFS
-      path: require.resolve("path-browserify"),
+      path: require.resolve("./src/polyfills/path"),
+      module: require.resolve("./src/polyfills/module"),
+      process: require.resolve("./src/polyfills/process"),
+      stream: require.resolve("stream-browserify"),
+      fs: require.resolve("memfs"),
+      constants: require.resolve("constants-browserify"),
+      os: require.resolve("os-browserify/browser"),
+      crypto: false,
+      // crypto: require.resolve("crypto-browserify"),
+      http: false,
+      // http: require.resolve("stream-http"),
+      https: false,
+      // https: require.resolve("https-browserify"),
+      vm: require.resolve("vm-browserify"),
+      zlib: false,
+      // zlib: require.resolve("browserify-zlib"),
+      buffer: require.resolve("buffer/"),
+      url: require.resolve("url/"),
+      util: require.resolve("util"),
+      querystring: require.resolve("querystring-es3"),
     },
   },
   module: {
@@ -59,7 +86,8 @@ const webExtensionConfig = {
       maxChunks: 1, // disable chunks by default since web extensions must be a single bundle
     }),
     new webpack.ProvidePlugin({
-      process: "process/browser", // provide a shim for the global `process` variable
+      process: require.resolve("./src/polyfills/process"), // provide a shim for the global `process` variable
+      Buffer: ["buffer", "Buffer"],
     }),
   ],
   externals: {

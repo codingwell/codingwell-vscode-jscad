@@ -13,7 +13,7 @@ addEventListener("message", (event) => {
       evaluation.rebuildGeometry(
         {
           // mainPath: '',
-          // apiMainPath: '@jscad/modeling',s
+          // apiMainPath: '@jscad/modeling',
           // serialize: false,
           // lookup: null,
           // lookupCounts: null,
