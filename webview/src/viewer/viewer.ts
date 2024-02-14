@@ -155,7 +155,7 @@ export default function viewer() {
         event &&
         event.data &&
         event.data.type &&
-        event.data.type == "download"
+        event.data.type === "download"
       ) {
         downloadModel(solids, event.data.fileName, event.data.format);
       }

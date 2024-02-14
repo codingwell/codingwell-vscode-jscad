@@ -117,7 +117,7 @@ const webViewConfig = {
   },
   resolve: {
     mainFields: ["browser", "module", "main"], // look for `browser` entry point in imported node modules
-    extensions: [".ts", ".js", ".jsx", ".css"],
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".css"],
     alias: {
       // provides alternate implementation for node module and source files
     },
@@ -129,12 +129,7 @@ const webViewConfig = {
   module: {
     rules: [
       {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: [{ loader: "ts-loader" }],
-      },
-      {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         exclude: /node_modules/,
         use: { loader: "babel-loader" },
       },
@@ -147,6 +142,11 @@ const webViewConfig = {
   plugins: [
     new webpack.optimize.LimitChunkCountPlugin({
       maxChunks: 1, // disable chunks by default since web extensions must be a single bundle
+    }),
+    new webpack.DefinePlugin({
+      "process.env": {
+        NODE_ENV: JSON.stringify("production"),
+      },
     }),
   ],
   performance: {

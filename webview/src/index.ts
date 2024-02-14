@@ -1,4 +1,5 @@
 import viewer from "./viewer/viewer";
+import reactApp from "./reactApp";
 
 const vscode = acquireVsCodeApi();
 
@@ -21,3 +22,5 @@ vscode.postMessage({
 window.mySetState = function (msg: unknown) {
   vscode.setState(msg);
 };
+
+reactApp();
