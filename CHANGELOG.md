@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.6.0]
+
+- Dropdown to download the model in multiple formats
+  - Better naming of downloaded file
+- React.js support for the UI
+- Thanks @ku3mich for your contribution making this happen
+
 ## [0.5.0]
 
 - Introduce webpack to handle dependancy management
